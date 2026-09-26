@@ -1,6 +1,6 @@
 import { useState, useCallback, type ReactNode } from 'react';
 import { AuthContext } from './authContext.ts';
-import type { Credentials } from '../types/greenApi.ts';
+import type { Credentials } from 'types/greenApi.ts';
 
 const STORAGE_KEY = 'green-api-credentials';
 

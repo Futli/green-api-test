@@ -1,5 +1,7 @@
-import { useAuth } from './hooks/useAuth.ts';
-import AuthForm from './components/AuthForm.jsx';
+import { useAuth } from './hooks';
+import AuthForm from './components/AuthForm.tsx';
+import { ChatsProvider } from './context/ChatsProvider.tsx';
+import ChatScreen from './components/ChatScreen.tsx';
 
 function App() {
   const { isAuthenticated } = useAuth();
@@ -9,9 +11,9 @@ function App() {
   }
 
   return (
-    <div className="app">
-      <p>Чат</p>
-    </div>
+    <ChatsProvider>
+      <ChatScreen />
+    </ChatsProvider>
   );
 }
 

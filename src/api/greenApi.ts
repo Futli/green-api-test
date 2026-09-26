@@ -5,7 +5,7 @@ import type {
   SendMessageResponse,
   ReceiveNotificationResponse,
   DeleteNotificationResponse,
-} from '../types/greenApi.ts';
+} from 'types/greenApi.ts';
 
 const API_URL = 'https://4100.api.green-api.com';
 

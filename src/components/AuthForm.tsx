@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { useAuth } from '../hooks/useAuth.ts';
-import { getAccountSettings, setSettings } from '../api/greenApi.ts';
+import { getAccountSettings, setSettings } from 'api/greenApi.ts';
 
 export default function AuthForm() {
   const { login } = useAuth();
