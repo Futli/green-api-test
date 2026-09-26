@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
+  base: '/green-api-test/', // замени на реальное имя репо
   plugins: [react()],
   resolve: {
     alias: {
