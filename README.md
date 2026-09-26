@@ -1,75 +1,79 @@
-# React + TypeScript + Vite
+# Telegram Web Client (тестовое задание)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Веб-интерфейс для отправки и получения текстовых сообщений в Telegram через [GREEN-API](https://green-api.com/telegram). Внешний вид интерфейса ориентирован на [web.max.ru](https://web.max.ru/).
 
-Currently, two official plugins are available:
+## Что реализовано
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- Авторизация по `idInstance` / `apiTokenInstance` от GREEN-API, с проверкой состояния инстанса (`getAccountSettings`)
+- Создание нового чата по номеру телефона получателя (через `CheckAccount`)
+- Отправка текстовых сообщений (`SendMessage`)
+- Получение входящих текстовых сообщений через long polling (`ReceiveNotification` + `DeleteNotification`)
+- Список чатов с превью последнего сообщения
+- Минималистичный UI без лишнего функционала (нет вложений, реакций, статусов прочтения и т.д. — по требованиям задания)
 
-## React Compiler
+## Стек
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- React + TypeScript
+- Vite
+- Без сторонних UI-библиотек и стейт-менеджеров — React Context + хуки
 
-## Expanding the ESLint configuration
+## Как развернуть локально
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### 1. Клонировать репозиторий
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
+```bash
+git https://github.com/Futli/green-api-test.git
+cd green-api-test
 ```
 
-You can also install [eslint-plugin-react-x](https://npmx.dev/package/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://npmx.dev/package/eslint-plugin-react-dom) for React-specific lint rules:
+### 2. Установить зависимости
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
+```bash
+npm install
 ```
+
+### 3. Получить учётные данные GREEN-API
+
+1. Зарегистрируйтесь на [green-api.com](https://green-api.com/telegram)
+2. Создайте инстанс, привяжите к нему Telegram-аккаунт (авторизация через QR-код / код из приложения — в личном кабинете)
+3. Скопируйте `idInstance` и `apiTokenInstance` из личного кабинета инстанса
+
+Приложение не требует `.env` — креды вводятся прямо в UI при первом запуске и сохраняются в `localStorage` браузера.
+
+### 4. Запустить в режиме разработки
+
+```bash
+npm run dev
+```
+
+Приложение откроется на `http://localhost:5173` (порт по умолчанию для Vite).
+
+### 5. Войти в приложение
+
+На экране входа введите `idInstance` и `apiTokenInstance`, полученные на шаге 3. При успешной проверке (статус инстанса `authorized`) откроется экран чатов.
+
+### 6. Проверить работу
+
+1. Нажмите **"+ Новый чат"**, введите номер телефона получателя (в международном формате, например `+79991234567`)
+2. Если на номере есть Telegram-аккаунт — откроется чат, можно написать сообщение
+3. Ответ с телефона получателя появится в чате автоматически (обычно в течение нескольких секунд — механизм long polling с максимальным ожиданием 20 секунд)
+
+## Сборка production-версии
+
+```bash
+npm run build
+npm run preview   # локальный просмотр собранной версии
+```
+
+## Важные технические детали
+
+- **Формат `chatId`**: для Telegram `chatId` — это внутренний числовой ID пользователя, не выводится напрямую из номера телефона. Поэтому создание нового чата идёт в два шага: `CheckAccount(phoneNumber)` → получение `chatId` → только после этого доступна отправка сообщений.
+- **Получение сообщений**: используется long polling (`ReceiveNotification`), а не Webhook — так как фронтенд разворачивается как статическое приложение без собственного бэкенда, способного принимать входящие HTTP-запросы от GREEN-API.
+- **Настройка инстанса**: перед первым получением сообщений приложение автоматически вызывает `SetSettings`, включая нужные типы уведомлений (`incomingWebhook`, `outgoingWebhook`, `stateWebhook`) — без этого шага очередь уведомлений остаётся пустой.
+- **Хранение данных**: креды в `localStorage`, история сообщений — только в памяти на время сессии (не персистится между перезагрузками страницы), так как задание не требует сохранения истории.
+
+## Известные ограничения
+
+- Нет обработки вложений (изображения, файлы, голосовые) — только текст, по требованиям задания
+- Нет статусов доставки/прочтения сообщений
+- История чатов не сохраняется между сессиями браузера
